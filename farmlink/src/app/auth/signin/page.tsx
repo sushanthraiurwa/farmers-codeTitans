@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function SignInPage() {
   const [role, setRole] = useState<"farmer" | "buyer">("farmer");
@@ -29,16 +30,28 @@ export default function SignInPage() {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = () => {
-    if (!form.email || !form.password) {
-      setError("Please fill all required fields");
-      return;
+  const handleSubmit = async () => {
+  if (!form.email || !form.password) {
+    setError("Please fill all required fields");
+    return;
+  }
+
+  try {
+    const res = await api.signin({
+      email: form.email,
+      password: form.password,
+      role,
+    });
+
+    if (res.success) {
+      router.push(`/${role}/dashboard`);
+    } else {
+      setError(res.message);
     }
-    
-    // Simulate authentication
-    console.log("Signing in:", { ...form, role });
-    router.push(`/${role}/dashboard`);
-  };
+  } catch (err) {
+    setError("Login failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center px-6">

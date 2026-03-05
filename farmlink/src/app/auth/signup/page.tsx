@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function SignUpPage() {
   const [role, setRole] = useState<"farmer" | "buyer">("farmer");
@@ -25,16 +26,27 @@ export default function SignUpPage() {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = () => {
-    if (!form.email || !form.password || !form.name) {
-      setError("Please fill all required fields");
-      return;
+  const handleSubmit = async () => {
+  if (!form.email || !form.password || !form.name) {
+    setError("Please fill all required fields");
+    return;
+  }
+
+  try {
+    const res = await api.signup({
+      ...form,
+      role,
+    });
+
+    if (res.success) {
+      router.push("/auth/signin");
+    } else {
+      setError(res.message);
     }
-    
-    // Simulate registration
-    console.log("Signing up:", { ...form, role });
-    router.push("/auth/signin");
-  };
+  } catch (err) {
+    setError("Registration failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center px-6">
